@@ -25,7 +25,9 @@ def compute_marker_distances(marker_coordinates,
     """
     
     start_frame_indices, end_frame_indices = find_edges(frame_identifiers, frame_gap)
+    
     displacement_vectors = marker_coordinates[end_frame_indices, :3] - marker_coordinates[start_frame_indices, :3]
+    
     marker_distances = np.linalg.norm(displacement_vectors, axis=1)
 
     if return_unit_vectors:
