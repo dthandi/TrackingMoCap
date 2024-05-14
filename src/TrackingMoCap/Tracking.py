@@ -1,4 +1,54 @@
 import numpy as np
+from sklearn.cluster import KMeans
+from sklearn.metrics import calinski_harabasz_score
+from scipy.spatial.distance import cdist
+from scipy.stats import norm
+
+
+def label_stationary(marker_coordinates, frame_identifiers, threshold_proximity=0.001):
+
+    """
+    Labels markers as stationary or not based on their displacement over a range of frames.
+
+    Args:
+    marker_table: DataFrame containing 'XYZ' coordinates and 'frame' numbers.
+    threshold_proximity: Float, the threshold for determining if a marker is stationary.
+
+    Returns:
+    stationary_labels: Series indicating whether each marker is stationary (1) or not (0).
+    """
+        
+    # Calculate distances and indices over frame gaps from 1 to 10
+    distances, start_indices, end_indices = compute_marker_distances(marker_coordinates,
+                                                                    frame_identifiers,
+                                                                    frame_gap=list(range(1, 11)))
+
+    # Normalize distances by frame durations and check against the threshold
+    frame_durations = frame_identifiers[end_indices] - frame_identifiers[start_indices]
+    normalized_distances = distances / frame_durations
+    is_stationary = normalized_distances < threshold_proximity
+
+    # Initialize labels and set stationary markers
+    stationary_labels = np.zeros(len(frame_identifiers), dtype=int)
+    stationary_indices = np.unique(np.concatenate((start_indices[is_stationary], end_indices[is_stationary])))
+    stationary_labels[stationary_indices] = 1
+
+    if np.sum(stationary_labels) > 1:  # Ensure there are at least two points to cluster
+        stationary_coords = marker_coordinates[stationary_labels == 1]
+        num_stationary = len(stationary_coords)
+        k_range = range(2, min(10, num_stationary))  # Ensure valid range for k (at least 2, at most num_stationary - 1)
+
+        if len(k_range) > 1:
+            scores = [calinski_harabasz_score(stationary_coords, KMeans(n_clusters=k).fit_predict(stationary_coords)) for k in k_range]
+            optimal_k = k_range[np.argmax(scores)]
+            kmeans = KMeans(n_clusters=optimal_k)
+            cluster_labels = kmeans.fit_predict(stationary_coords) + 1  # offset by 1 to avoid zero label
+            stationary_labels[stationary_labels == 1] = cluster_labels
+
+    return stationary_labels
+
+
+
 
 def compute_marker_distances(marker_coordinates, 
                              frame_identifiers, 
