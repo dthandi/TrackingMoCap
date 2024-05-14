@@ -21,6 +21,7 @@ dependencies = [
     'importlib-metadata; python_version<"3.10"',
     'numpy',
     'pandas',
+    'matplotlib',
 ]
 dynamic = ["version"]
 
