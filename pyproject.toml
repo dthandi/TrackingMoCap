@@ -22,7 +22,9 @@ dependencies = [
     'numpy',
     'pandas',
     'matplotlib',
-    'ipympl'
+    'ipympl',
+    'scipy',
+    'scikit-learn',
 ]
 dynamic = ["version"]
 
