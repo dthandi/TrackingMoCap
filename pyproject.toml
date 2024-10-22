@@ -25,6 +25,9 @@ dependencies = [
     'ipympl',
     'scipy',
     'scikit-learn',
+    'ipykernel',
+    'c3d',
+    'seaborn'
 ]
 dynamic = ["version"]
 
